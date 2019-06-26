@@ -1,0 +1,7 @@
+#
+# Custom Init Script File for CoCore-S
+#
+
+on early-fs
+    mount ramfs ramfs /ram mode=0777
+    mount tmpfs tmpfs /tmp
