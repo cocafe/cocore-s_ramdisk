@@ -1,0 +1,16 @@
+#!/sbin/busybox sh
+
+BOOT_BLK=/dev/block/platform/11120000.ufs/by-name/BOOT
+
+if [ $# -eq 0 ]; then
+  echo "usage: ddkernel [boot.img]"
+  exit 1
+fi
+
+if [ -f $1 ]; then
+  echo "dd $1 to ${BOOT_BLK}"
+  dd if=$1 of=${BOOT_BLK} bs=4096
+else
+  echo "no such file: $1"
+fi
+
