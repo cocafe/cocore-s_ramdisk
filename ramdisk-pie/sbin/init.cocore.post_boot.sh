@@ -40,6 +40,13 @@ ${RESETPROP} ro.boot.verifiedbootstate "green"
 ${RESETPROP} ro.boot.flash.locked "1"
 ${RESETPROP} ro.boot.ddrinfo "00000001"
 
+# Fix personalist.xml: @tgpkernel
+if [ ! -f /data/system/users/0/personalist.xml ]; then
+  touch /data/system/users/0/personalist.xml
+  chmod 600 /data/system/users/0/personalist.xml
+  chown system:system /data/system/users/0/personalist.xml
+fi
+
 #
 # Settings
 #
