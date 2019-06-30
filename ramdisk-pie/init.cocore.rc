@@ -7,7 +7,22 @@ on early-fs
     mount tmpfs tmpfs /tmp mode=0777
 
 on property:sys.boot_completed=1
+    # proca service is broken
+    stop proca
+
+    # secure storage is broken, too
+    stop secure_storage
+
+    start cocore_post-boot
+
+on property:init.svc.cocore_post-boot=stopped
     start cocore_init-d
+
+service cocore_post-boot /system/bin/sh /sbin/init.cocore.post_boot.sh
+    class late_start
+    user root
+    disabled
+    oneshot
 
 service cocore_init-d /system/bin/sh /sbin/init.cocore.init-d.sh
     class late_start
