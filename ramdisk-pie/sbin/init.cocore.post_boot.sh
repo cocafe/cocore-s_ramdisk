@@ -34,6 +34,15 @@ fi
 # Settings
 #
 
+# selinux
+if [ ! -f /data/selinux_enforcing ]; then
+  echo 0 > /sys/fs/selinux/enforce
+  chmod 640 /sys/fs/selinux/enforce
+else
+  echo 1 > /sys/fs/selinux/enforce
+  chmod 644 /sys/fs/selinux/enforce
+fi
+
 # Block Queue Scheduler
 BLK_SCHED=cfq
 
