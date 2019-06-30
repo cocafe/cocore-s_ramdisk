@@ -3,11 +3,11 @@ on init
 #omr
     mkdir /omr 0771 system system
 
-on boot
+# on boot
 
 # tdmb
-    chown system system /dev/tdmb
-    chmod 0660 /dev/tdmb
+#    chown system system /dev/tdmb
+#    chmod 0660 /dev/tdmb
 
 on fs
 #omr
@@ -16,7 +16,7 @@ on fs
     chown system system /omr
     chmod 0771 /omr
 
-service dmb /system/bin/dmbserver
-    class main
-    user media
-    group system radio inet misc audio graphics net_bt net_bt_admin sdcard_rw sdcard_r shell media_rw
+# service dmb /system/bin/dmbserver
+#     class main
+#     user media
+#     group system radio inet misc audio graphics net_bt net_bt_admin sdcard_rw sdcard_r shell media_rw
