@@ -13,4 +13,8 @@ on property:sys.boot_completed=1
     # secure storage is broken, too
     stop secure_storage
 
+    stop tee-1-0
+    stop teeregistry-1-0
+
     exec u:r:magisk:s0 root root -- /sbin/init.cocore.post_boot.sh
+
