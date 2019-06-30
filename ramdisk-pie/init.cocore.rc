@@ -4,7 +4,7 @@
 
 on early-fs
     mount ramfs ramfs /ram mode=0777
-    mount tmpfs tmpfs /tmp
+    mount tmpfs tmpfs /tmp mode=0777
 
 on property:sys.boot_completed=1
     start cocore_init-d
