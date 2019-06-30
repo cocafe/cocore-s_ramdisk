@@ -23,23 +23,6 @@ mount -o rw,remount /system
 # Fixes
 #
 
-# Fix props: @tgpkernel
-RESETPROP="/sbin/resetprop resetprop -v -n"
-
-# Set KNOX to 0x0 on running /system
-${RESETPROP} ro.boot.warranty_bit "0"
-${RESETPROP} ro.warranty_bit "0"
-
-# Fix Samsung Related Flags
-${RESETPROP} ro.fmp_config "1"
-${RESETPROP} ro.boot.fmp_config "1"
-
-# Fix safetynet flags
-${RESETPROP} ro.boot.veritymode "enforcing"
-${RESETPROP} ro.boot.verifiedbootstate "green"
-${RESETPROP} ro.boot.flash.locked "1"
-${RESETPROP} ro.boot.ddrinfo "00000001"
-
 # Fix personalist.xml: @tgpkernel
 if [ ! -f /data/system/users/0/personalist.xml ]; then
   touch /data/system/users/0/personalist.xml
