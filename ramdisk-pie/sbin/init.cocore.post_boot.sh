@@ -50,7 +50,7 @@ ZRAM_SIZE=$((2048 * 1024 * 1024))
 if [ ! -f /data/zram_disable ]; then
   echo ${ZRAM_SIZE} > /sys/block/${ZRAM_DEV}/disksize
   ${BB} mkswap /dev/block/${ZRAM_DEV}
-  ${BB} swapon -a /dev/block/${ZRAM_DEV}
+  ${BB} swapon /dev/block/${ZRAM_DEV}
 fi
 
 # Block Queue Scheduler
