@@ -1,5 +1,6 @@
-#!/system/bin/sh
+#!/sbin/busybox sh
 
+BB=/sbin/busybox
 LOG=/tmp/post-boot.log
 
 exec >> ${LOG} 2>&1
@@ -41,6 +42,15 @@ if [ ! -f /data/selinux_enforcing ]; then
 else
   echo 1 > /sys/fs/selinux/enforce
   chmod 644 /sys/fs/selinux/enforce
+fi
+
+# zram
+ZRAM_DEV=zram0
+ZRAM_SIZE=$((2048 * 1024 * 1024))
+if [ ! -f /data/zram_disable ]; then
+  echo ${ZRAM_SIZE} > /sys/block/${ZRAM_DEV}/disksize
+  ${BB} mkswap /dev/block/${ZRAM_DEV}
+  ${BB} swapon -a /dev/block/${ZRAM_DEV}
 fi
 
 # Block Queue Scheduler
