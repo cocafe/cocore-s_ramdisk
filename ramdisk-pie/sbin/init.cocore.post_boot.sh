@@ -13,9 +13,9 @@ if [ -e ${LOG} ]; then
 fi
 
 # Trim filesystems
-/sbin/busybox fstrim -v /data
-/sbin/busybox fstrim -v /cache
-/sbin/busybox fstrim -v /system
+${BB} fstrim -v /data
+${BB} fstrim -v /cache
+${BB} fstrim -v /system
 
 # Mount /system writable
 mount -o rw,remount /system
