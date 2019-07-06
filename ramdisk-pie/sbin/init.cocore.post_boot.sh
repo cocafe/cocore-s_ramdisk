@@ -47,11 +47,11 @@ fi
 # zram
 ZRAM_DEV=zram0
 ZRAM_SIZE=$((2048 * 1024 * 1024))
-if [ ! -f /data/zram_disable ]; then
-  echo ${ZRAM_SIZE} > /sys/block/${ZRAM_DEV}/disksize
-  ${BB} mkswap /dev/block/${ZRAM_DEV}
-  ${BB} swapon /dev/block/${ZRAM_DEV}
-fi
+# if [ ! -f /data/zram_disable ]; then
+#   echo ${ZRAM_SIZE} > /sys/block/${ZRAM_DEV}/disksize
+#   ${BB} mkswap /dev/block/${ZRAM_DEV}
+#   ${BB} swapon /dev/block/${ZRAM_DEV}
+# fi
 
 # Block Queue Scheduler
 BLK_SCHED=cfq
