@@ -53,6 +53,21 @@ ZRAM_SIZE=$((2048 * 1024 * 1024))
 #   ${BB} swapon /dev/block/${ZRAM_DEV}
 # fi
 
+# zswap
+ZSWAP_DEV=vnswap0
+ZSWAP_COMP=lz4
+ZSWAP_SIZE=$((2048 * 1024 * 1024))
+if [ ! -f /data/zswap_disable ]; then
+  # zswap config
+  echo ${ZSWAP_COMP} > /sys/module/zswap/parameters/compressor
+  echo 1 > /sys/module/zswap/parameters/enabled
+
+  # vnswap block device config
+  echo ${ZSWAP_SIZE} > /sys/block/${ZSWAP_DEV}/disksize
+  ${BB} mkswap /dev/block/${ZSWAP_DEV}
+  ${BB} swapon /dev/block/${ZSWAP_DEV}
+fi
+
 # Block Queue Scheduler
 BLK_SCHED=cfq
 
