@@ -75,11 +75,22 @@ for i in /sys/block/sd?/queue/scheduler; do
   echo ${BLK_SCHED} > $i
 done
 
+for i in /sys/block/mmcblk?/queue/scheduler; do
+  echo ${BLK_SCHED} > $i
+done
+
 # CFQ Settings
 if [ ${BLK_SCHED} = "cfq" ]; then
-  for i in /sys/block/sd?/queue/iosched/target_latency; do
+  for i in /sys/block/sd?/queue/iosched; do
     # Let CFQ decide lowest latency by kernel HZ
-    echo 0 > $i
+    echo 0 > $i/target_latency
+    echo 0 > $i/target_latency_us
+  done
+
+  for i in /sys/block/mmcblk?/queue/iosched; do
+    # Let CFQ decide lowest latency by kernel HZ
+    echo 0 > $i/target_latency
+    echo 0 > $i/target_latency_us
   done
 fi
 
