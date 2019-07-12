@@ -101,6 +101,10 @@ fi
 echo 3 > /proc/sys/net/ipv4/tcp_fastopen
 echo 30 > /proc/sys/net/ipv4/tcp_fin_timeout
 
+# Virtual Memory
+echo 1 > /proc/sys/vm/vfs_cache_pressure
+echo 90 > /proc/sys/vm/dirty_ratio
+
 #
 # init.d
 #
