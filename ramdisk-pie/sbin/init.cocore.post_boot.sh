@@ -69,7 +69,7 @@ if [ ! -f /data/zswap_disable ]; then
 fi
 
 # Block Queue Scheduler
-BLK_SCHED=cfq
+BLK_SCHED=sio
 
 for i in /sys/block/sd?/queue/scheduler; do
   echo ${BLK_SCHED} > $i
