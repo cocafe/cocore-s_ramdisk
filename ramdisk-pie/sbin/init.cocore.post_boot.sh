@@ -35,6 +35,12 @@ fi
 # Settings
 #
 
+# Exynos hotplug settings
+# TODO: remove this crap in the future
+echo 1 > /sys/power/cpuhotplug/min_online_cpu
+echo 8 > /sys/power/cpuhotplug/max_online_cpu
+echo 0 > /sys/power/cpuhotplug/enabled
+
 # RCU threads: Set affinity to offload RCU workload
 # !! This will impact cache and memory locality
 RCU_CPUMASK=01
