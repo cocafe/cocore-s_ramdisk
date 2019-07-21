@@ -50,6 +50,10 @@ for i in `seq 0 7`; do
   taskset -p ${RCU_CPUMASK} `pgrep "rcuos\/$i"`
 done
 
+# CPUQuiet settings
+# echo 4 > /sys/devices/system/cpu/cpuquiet/nr_min_cpus
+# echo rqbalance > /sys/devices/system/cpu/cpuquiet/current_governor
+
 # selinux
 if [ ! -f /data/selinux_enforcing ]; then
   echo 0 > /sys/fs/selinux/enforce
