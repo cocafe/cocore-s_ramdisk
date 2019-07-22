@@ -54,6 +54,11 @@ done
 # echo 4 > /sys/devices/system/cpu/cpuquiet/nr_min_cpus
 # echo rqbalance > /sys/devices/system/cpu/cpuquiet/current_governor
 
+# Touch Boost: cpu_boost
+echo 0:1053000 > /sys/module/cpu_boost/parameters/input_boost_freq
+echo 4:1066000 > /sys/module/cpu_boost/parameters/input_boost_freq
+echo 200       > /sys/module/cpu_boost/parameters/input_boost_ms
+
 # selinux
 if [ ! -f /data/selinux_enforcing ]; then
   echo 0 > /sys/fs/selinux/enforce
