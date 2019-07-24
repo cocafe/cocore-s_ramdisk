@@ -43,12 +43,12 @@ echo 0 > /sys/power/cpuhotplug/enabled
 
 # RCU threads: Set affinity to offload RCU workload
 # !! This will impact cache and memory locality
-RCU_CPUMASK=01
-for i in `seq 0 7`; do
-  taskset -p ${RCU_CPUMASK} `pgrep "rcuop\/$i"`
-  taskset -p ${RCU_CPUMASK} `pgrep "rcuob\/$i"`
-  taskset -p ${RCU_CPUMASK} `pgrep "rcuos\/$i"`
-done
+# RCU_CPUMASK=01
+# for i in `seq 0 7`; do
+#   taskset -p ${RCU_CPUMASK} `pgrep "rcuop\/$i"`
+#   taskset -p ${RCU_CPUMASK} `pgrep "rcuob\/$i"`
+#   taskset -p ${RCU_CPUMASK} `pgrep "rcuos\/$i"`
+# done
 
 # CPUQuiet settings
 # echo 4 > /sys/devices/system/cpu/cpuquiet/nr_min_cpus
