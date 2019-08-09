@@ -1,6 +1,9 @@
 #!/sbin/busybox sh
 
+# utility shortcuts
 BB=/sbin/busybox
+TC=/sbin/tc_unoffical
+
 LOG=/tmp/post-boot.log
 CONFIG=/data/cocore
 
@@ -160,7 +163,20 @@ fi
 # Symlink install /sbin/busybox for su shell
 #/sbin/busybox --install -s /sbin
 
-# TCP fastopen
+# Network Stack
+if [ -f ${CONFIG}/tcp_cong ]; then
+  TCP_CONG=`cat ${CONFIG}/tcp_cong`
+fi
+
+if [ ! -z ${TCP_CONG} ]; then
+  echo ${TCP_CONG} > /proc/sys/net/ipv4/tcp_congestion_control
+
+  if [ ${TCP_CONG} = "bbr" ]; then
+    ${TC} qdisc replace dev rmnet0 root fq
+    ${TC} qdisc replace dev wlan0 root fq
+  fi
+fi
+
 echo 3 > /proc/sys/net/ipv4/tcp_fastopen
 echo 30 > /proc/sys/net/ipv4/tcp_fin_timeout
 
