@@ -9,8 +9,6 @@ CONFIG=/data/cocore
 
 exec >> ${LOG} 2>&1
 
-echo init.cocore_post-boot: start
-
 if [ -e ${LOG} ]; then
   # Mark init log global readable
   chmod 0644 ${LOG}
@@ -24,7 +22,9 @@ ${BB} fstrim -v /system
 # Mount /system writable
 mount -o rw,remount /system
 
-mkdir -p ${CONFIG}
+if [ ! -d ${CONFIG} ]; then
+  mkdir -p ${CONFIG}
+fi
 
 #
 # Fixes
@@ -189,3 +189,4 @@ echo 90 > /proc/sys/vm/dirty_ratio
 #
 
 /sbin/init.cocore.init-d.sh
+
