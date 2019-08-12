@@ -38,6 +38,12 @@ if [ ! -f /data/system/users/0/personalist.xml ]; then
 fi
 
 #
+# Tombstones
+#
+
+/sbin/init.cocore.tombstones.sh
+
+#
 # Settings
 #
 
