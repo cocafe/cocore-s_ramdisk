@@ -43,6 +43,7 @@ on boot
     symlink /sys/kernel/config/usb_gadget/g1/functions/eem.0 /sys/kernel/config/usb_gadget/g1/configs/c.1/eem.0
     symlink /sys/kernel/config/usb_gadget/g1/functions/mass_storage.0 /sys/kernel/config/usb_gadget/g1/configs/c.1/mass_storage.0
     setprop sys.usb.configfs 1
+    setprop sys.usb.config adb
 
 on charger && property:ro.debuggable=1
     write /sys/kernel/config/usb_gadget/g1/strings/0x409/serialnumber ${ro.serialno}
