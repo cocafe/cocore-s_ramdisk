@@ -71,6 +71,71 @@ echo 0:1053000 > /sys/module/cpu_boost/parameters/input_boost_freq
 echo 4:1066000 > /sys/module/cpu_boost/parameters/input_boost_freq
 echo 200       > /sys/module/cpu_boost/parameters/input_boost_ms
 
+# CPUFREQ Settings
+
+CPUFREQ_LIT_MIN=0
+CPUFREQ_LIT_MAX=0
+
+CPUFREQ_BIG_MIN=0
+CPUFREQ_BIT_MAX=0
+
+CPUFREQ_GOV_LIT=ondemand
+CPUFREQ_GOV_BIG=ondemand
+
+CPUFREQ_POLICY_LIT=/sys/devices/system/cpu/cpufreq/policy0
+CPUFREQ_POLICY_BIG=/sys/devices/system/cpu/cpufreq/policy4
+
+if [ -f ${CONFIG}/cpufreq_lit_min ]; then
+  CPUFREQ_LIT_MIN=`cat ${CONFIG}/cpufreq_lit_min`
+fi
+
+if [ -f ${CONFIG}/cpufreq_lit_max ]; then
+  CPUFREQ_LIT_MAX=`cat ${CONFIG}/cpufreq_lit_max`
+fi
+
+if [ -f ${CONFIG}/cpufreq_big_min ]; then
+  CPUFREQ_BIG_MIN=`cat ${CONFIG}/cpufreq_big_min`
+fi
+
+if [ -f ${CONFIG}/cpufreq_big_max ]; then
+  CPUFREQ_BIG_MAX=`cat ${CONFIG}/cpufreq_big_max`
+fi
+
+if [ -f ${CONFIG}/cpufreq_gov_lit ]; then
+  CPUFREQ_GOV_LIT=`cat ${CONFIG}/cpufreq_gov_lit`
+fi
+
+if [ -f ${CONFIG}/cpufreq_gov_big ]; then
+  CPUFREQ_GOV_BIG=`cat ${CONFIG}/cpufreq_gov_big`
+fi
+
+echo "cpufreq: little: min: ${CPUFREQ_LIT_MIN} max: ${CPUFREQ_LIT_MAX} gov: ${CPUFREQ_GOV_LIT}"
+echo "cpufreq: big:    min: ${CPUFREQ_BIG_MIN} max: ${CPUFREQ_BIG_MAX} gov: ${CPUFREQ_GOV_BIG}"
+
+if [ ${CPUFREQ_LIT_MIN} -ne 0 ]; then
+  echo ${CPUFREQ_LIT_MIN} > ${CPUFREQ_POLICY_LIT}/scaling_min_freq
+fi
+
+if [ ${CPUFREQ_LIT_MAX} -ne 0 ]; then
+  echo ${CPUFREQ_LIT_MAX} > ${CPUFREQ_POLICY_LIT}/scaling_max_freq
+fi
+
+if [ ${CPUFREQ_BIG_MIN} -ne 0 ]; then
+  echo ${CPUFREQ_BIG_MIN} > ${CPUFREQ_POLICY_BIG}/scaling_min_freq
+fi
+
+if [ ${CPUFREQ_BIG_MAX} -ne 0 ]; then
+  echo ${CPUFREQ_BIG_MAX} > ${CPUFREQ_POLICY_BIG}/scaling_max_freq
+fi
+
+if [ ! -z ${CPUFREQ_GOV_LIT} ]; then
+  echo ${CPUFREQ_GOV_LIT} > ${CPUFREQ_POLICY_LIT}/scaling_governor
+fi
+
+if [ ! -z ${CPUFREQ_GOV_BIG} ]; then
+  echo ${CPUFREQ_GOV_BIG} > ${CPUFREQ_POLICY_BIG}/scaling_governor
+fi
+
 # selinux
 if [ ! -f ${CONFIG}/selinux_enforcing ]; then
   echo "selinux permissive"
