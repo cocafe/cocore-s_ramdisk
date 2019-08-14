@@ -2,9 +2,8 @@
 
 BB=/sbin/busybox
 
-# busybox date timezone is wrong
 TS_DIR=/data/cocore/tombstones
-TS_FILE="last-kmsg_`/system/bin/date '+%Y-%m-%d-%H-%M-%S'`.log.xz"
+TS_FILE="last-kmsg_`date '+%Y-%m-%d-%H-%M-%S'`.log.xz"
 
 LAST_KMSG=/proc/last_kmsg
 
