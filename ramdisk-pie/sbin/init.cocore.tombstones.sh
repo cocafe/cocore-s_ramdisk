@@ -3,7 +3,7 @@
 BB=/sbin/busybox
 
 TS_DIR=/data/cocore/tombstones
-TS_FILE="last-kmsg_`date '+%Y-%m-%d-%H-%M-%S'`.log.xz"
+TS_FILE="last-kmsg_`date '+%Y-%m-%d-%H-%M-%S'`.log"
 
 LAST_KMSG=/proc/last_kmsg
 
@@ -28,5 +28,5 @@ if [ ! -e ${TS_DIR} ]; then
 fi
 
 # dump and compress last_kmsg
-${BB} cat ${LAST_KMSG} | ${BB} xz -c > ${TS_DIR}/${TS_FILE}
+${BB} cat ${LAST_KMSG} | ${BB} gzip -c > ${TS_DIR}/${TS_FILE}.gz
 
