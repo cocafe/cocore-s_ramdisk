@@ -7,32 +7,26 @@ TS_FILE="last-kmsg_`date '+%Y-%m-%d-%H-%M-%S'`.log.xz"
 
 LAST_KMSG=/proc/last_kmsg
 
-# a cold boot should contain this in first few lines
-COLD_BOOT="Samsung S-Boot"
-
-# a normal reboot should contain this line
-NORMAL_REBOOT="exynos_reboot: Exynos SoC reset right now"
+# flag for "need to store last_kmsg" provided by sammy reset reason
+NEED_STORE=/proc/store_lastkmsg
 
 if [ ! -f ${LAST_KMSG} ]; then
   echo "tombstone: /proc/last_kmsg is not existed"
   exit
 fi
 
-${BB} head -n 2 ${LAST_KMSG} | greq -q ${COLD_BOOD} > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-  echo "tombstone: cold boot, no last_kmsg"
-  exit
+LAST_CRASH=`cat ${NEED_STORE}`
+if [ ${LAST_CRASH} -eq 0 ]; then
+  echo "tombstone: reset reason looks fine"
 fi
 
-${BB} grep -q ${NORMAL_REBOOT} ${LAST_KMSG} > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-  echo "tombstone: no exception found"
-  exit
-fi
+echo "tombstone: reset reason indicated a crash"
 
+# make sure directory exists
 if [ ! -e ${TS_DIR} ]; then
   ${BB} mkdir -p ${TS_DIR}
 fi
 
+# dump and compress last_kmsg
 ${BB} cat ${LAST_KMSG} | ${BB} xz -c > ${TS_DIR}/${TS_FILE}
 
