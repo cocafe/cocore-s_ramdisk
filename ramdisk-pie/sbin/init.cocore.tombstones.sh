@@ -18,6 +18,7 @@ fi
 LAST_CRASH=`cat ${NEED_STORE}`
 if [ ${LAST_CRASH} -eq 0 ]; then
   echo "tombstone: reset reason looks fine"
+  exit
 fi
 
 echo "tombstone: reset reason indicated a crash"
