@@ -2,7 +2,7 @@
 
 # utility shortcuts
 BB=/sbin/busybox
-TC=/sbin/tc_unoffical
+TC=/sbin/tc_linux
 
 LOG=/tmp/post-boot.log
 CONFIG=/data/cocore
