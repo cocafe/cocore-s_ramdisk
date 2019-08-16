@@ -235,17 +235,35 @@ fi
 #/sbin/busybox --install -s /sbin
 
 # Network Stack
+# TCP_CONG=cubic
 if [ -f ${CONFIG}/tcp_cong ]; then
   TCP_CONG=`cat ${CONFIG}/tcp_cong`
 fi
 
+# NET_SCHED=pfifo_fast
+if [ -f ${CONFIG}/net_sched ]; then
+  NET_SCHED=`cat ${CONFIG}/net_sched`
+fi
+
 if [ ! -z ${TCP_CONG} ]; then
+  echo "tcp congestion: ${TCP_CONG}"
+
   echo ${TCP_CONG} > /proc/sys/net/ipv4/tcp_congestion_control
 
+  # config for tcp congestions that require special packet sched
   if [ ${TCP_CONG} = "bbr" ]; then
-    ${TC} qdisc replace dev rmnet0 root fq
-    ${TC} qdisc replace dev wlan0 root fq
+    NET_SCHED=fq
   fi
+fi
+
+if [ ! -z ${NET_SCHED} ]; then
+  echo "net packet sched: ${NET_SCHED}"
+
+  echo ${NET_SCHED} > /proc/sys/net/core/default_qdisc
+
+  # rmnet0 has some other default settings: mq
+  ${TC} qdisc replace dev rmnet0 root ${NET_SCHED}
+  ${TC} qdisc replace dev wlan0 root ${NET_SCHED}
 fi
 
 echo 3 > /proc/sys/net/ipv4/tcp_fastopen
