@@ -255,6 +255,38 @@ echo 30 > /proc/sys/net/ipv4/tcp_fin_timeout
 echo 1 > /proc/sys/vm/vfs_cache_pressure
 echo 90 > /proc/sys/vm/dirty_ratio
 
+# Process Scheduler
+# tunable                       modified  default
+# sched_cfs_bandwidth_slice_us: 3000      5000
+# sched_cfs_boost:              0         0
+# sched_child_runs_first:       0         0
+# sched_cstate_aware:           1         1
+# sched_initial_task_util:      0         0
+# sched_latency_ns:             3000000   10000000
+# sched_migration_cost_ns:      250000    500000
+# sched_min_granularity_ns:     300000    3000000
+# sched_nr_migrate:             32        32
+# sched_rr_timeslice_ms:        7         25
+# sched_rt_period_us:           1000000   1000000
+# sched_rt_runtime_us:          950000    950000
+# sched_schedstats:             0         1
+# sched_shares_window_ns:       10000000  10000000
+# sched_sync_hint_enable:       1         1
+# sched_time_avg_ms:            1000      1000
+# sched_tunable_scaling:        1         0
+# sched_wakeup_granularity_ns:  500000    2000000
+
+# echo 3000000 > /proc/sys/kernel/sched_latency_ns
+# echo 250000 > /proc/sys/kernel/sched_migration_cost_ns
+# echo 300000 > /proc/sys/kernel/sched_min_granularity_ns
+# echo 500000 > /proc/sys/kernel/sched_wakeup_granularity_ns
+# echo 3000 > /proc/sys/kernel/sched_cfs_bandwidth_slice_us
+echo 0 > /proc/sys/kernel/sched_schedstats
+# echo 10000000 > /proc/sys/kernel/sched_shares_window_ns
+# echo 1 > /proc/sys/kernel/sched_sync_hint_enable
+# echo 1000 > /proc/sys/kernel/sched_time_avg_ms
+echo 1 > /proc/sys/kernel/sched_tunable_scaling
+
 #
 # init.d
 #
