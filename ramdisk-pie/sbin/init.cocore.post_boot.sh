@@ -1,4 +1,4 @@
-#!/sbin/busybox sh
+#!/sbin/bash
 
 # utility shortcuts
 BB=/sbin/busybox
@@ -6,6 +6,25 @@ TC=/sbin/tc_linux
 
 LOG=/tmp/post-boot.log
 CONFIG=/data/cocore
+
+#
+# Helpers
+#
+
+# @1: arguments to file, if need, wrap with quotas
+# @2: file
+write()
+{
+  local args=$1
+  local file=$2
+
+  echo "write: ${file}: ${args}"
+  echo ${args} > ${file}
+}
+
+#
+# Misc
+#
 
 exec >> ${LOG} 2>&1
 
@@ -22,9 +41,8 @@ ${BB} fstrim -v /system
 # Mount /system writable
 mount -o rw,remount /system
 
-if [ ! -d ${CONFIG} ]; then
-  mkdir -p ${CONFIG}
-fi
+# Symlink install /sbin/busybox for su shell
+#/sbin/busybox --install -s /sbin
 
 #
 # Fixes
@@ -44,46 +62,49 @@ fi
 /sbin/init.cocore.tombstones.sh
 
 #
-# Settings
+# Configs
 #
 
-# Exynos hotplug settings
-# TODO: remove this crap in the future
-echo 1 > /sys/power/cpuhotplug/min_online_cpu
-echo 8 > /sys/power/cpuhotplug/max_online_cpu
-echo 0 > /sys/power/cpuhotplug/enabled
+# Config directory
+if [ ! -d ${CONFIG} ]; then
+  mkdir -p ${CONFIG}
+fi
 
-# RCU threads: Set affinity to offload RCU workload
-# !! This will impact cache and memory locality
-# RCU_CPUMASK=01
-# for i in `seq 0 7`; do
-#   taskset -p ${RCU_CPUMASK} `pgrep "rcuop\/$i"`
-#   taskset -p ${RCU_CPUMASK} `pgrep "rcuob\/$i"`
-#   taskset -p ${RCU_CPUMASK} `pgrep "rcuos\/$i"`
-# done
-
-# CPUQuiet settings
-# echo 4 > /sys/devices/system/cpu/cpuquiet/nr_min_cpus
-# echo rqbalance > /sys/devices/system/cpu/cpuquiet/current_governor
-
-# Touch Boost: cpu_boost
-echo 0:1053000 > /sys/module/cpu_boost/parameters/input_boost_freq
-echo 4:1066000 > /sys/module/cpu_boost/parameters/input_boost_freq
-echo 200       > /sys/module/cpu_boost/parameters/input_boost_ms
-
-# CPUFREQ Settings
-
+# Config variables
 CPUFREQ_LIT_MIN=0
 CPUFREQ_LIT_MAX=0
-
 CPUFREQ_BIG_MIN=0
 CPUFREQ_BIT_MAX=0
-
 CPUFREQ_GOV_LIT=ondemand
 CPUFREQ_GOV_BIG=ondemand
 
-CPUFREQ_POLICY_LIT=/sys/devices/system/cpu/cpufreq/policy0
-CPUFREQ_POLICY_BIG=/sys/devices/system/cpu/cpufreq/policy4
+CPUBOOST_ENABLED=1
+CPUBOOST_FREQ_LIT=1053000
+CPUBOOST_FREQ_BIG=1066000
+CPUBOOST_MS=200
+
+SELNX_ENFORCE=0
+
+ZRAM_DEV=zram0
+ZRAM_COMP=lz4
+ZRAM_SIZE=$((2048 * 1024 * 1024))
+ZRAM_ENABLED=0
+
+ZSWAP_DEV=vnswap0
+ZSWAP_COMP=lz4
+ZSWAP_SIZE=$((2048 * 1024 * 1024))
+ZSWAP_ENABLED=0
+
+BLK_SCHED=sio
+
+#TCP_CONG=cubic
+#NET_SCHED=pfifo_fast
+
+NET_TUNE=1
+VM_TUNE=1
+SCHED_TUNE=1
+
+# CPUFreq
 
 if [ -f ${CONFIG}/cpufreq_lit_min ]; then
   CPUFREQ_LIT_MIN=`cat ${CONFIG}/cpufreq_lit_min`
@@ -109,50 +130,31 @@ if [ -f ${CONFIG}/cpufreq_gov_big ]; then
   CPUFREQ_GOV_BIG=`cat ${CONFIG}/cpufreq_gov_big`
 fi
 
-echo "cpufreq: little: min: ${CPUFREQ_LIT_MIN} max: ${CPUFREQ_LIT_MAX} gov: ${CPUFREQ_GOV_LIT}"
-echo "cpufreq: big:    min: ${CPUFREQ_BIG_MIN} max: ${CPUFREQ_BIG_MAX} gov: ${CPUFREQ_GOV_BIG}"
+# CPUBoost
 
-if [ ${CPUFREQ_LIT_MIN} -ne 0 ]; then
-  echo ${CPUFREQ_LIT_MIN} > ${CPUFREQ_POLICY_LIT}/scaling_min_freq
+if [ -f ${CONFIG}/cpuboost_enabled ]; then
+  CPUBOOST_ENABLED=`cat ${CONFIG}/cpuboost_enabled`
 fi
 
-if [ ${CPUFREQ_LIT_MAX} -ne 0 ]; then
-  echo ${CPUFREQ_LIT_MAX} > ${CPUFREQ_POLICY_LIT}/scaling_max_freq
+if [ -f ${CONFIG}/cpuboost_freq_lit ]; then
+  CPUBOOST_FREQ_LIT=`cat ${CONFIG}/cpuboost_freq_lit`
 fi
 
-if [ ${CPUFREQ_BIG_MIN} -ne 0 ]; then
-  echo ${CPUFREQ_BIG_MIN} > ${CPUFREQ_POLICY_BIG}/scaling_min_freq
+if [ -f ${CONFIG}/cpuboost_freq_big ]; then
+  CPUBOOST_FREQ_BIG=`cat ${CONFIG}/cpuboost_freq_big`
 fi
 
-if [ ${CPUFREQ_BIG_MAX} -ne 0 ]; then
-  echo ${CPUFREQ_BIG_MAX} > ${CPUFREQ_POLICY_BIG}/scaling_max_freq
-fi
-
-if [ ! -z ${CPUFREQ_GOV_LIT} ]; then
-  echo ${CPUFREQ_GOV_LIT} > ${CPUFREQ_POLICY_LIT}/scaling_governor
-fi
-
-if [ ! -z ${CPUFREQ_GOV_BIG} ]; then
-  echo ${CPUFREQ_GOV_BIG} > ${CPUFREQ_POLICY_BIG}/scaling_governor
+if [ -f ${CONFIG}/cpuboost_ms ]; then
+  CPUBOOST_MS=`cat ${CONFIG}/cpuboost_ms`
 fi
 
 # selinux
-if [ ! -f ${CONFIG}/selinux_enforcing ]; then
-  echo "selinux permissive"
 
-  echo 0 > /sys/fs/selinux/enforce
-  chmod 640 /sys/fs/selinux/enforce
-else
-  echo "selinux enforcing"
-
-  echo 1 > /sys/fs/selinux/enforce
-  chmod 644 /sys/fs/selinux/enforce
+if [ -f ${CONFIG}/selinux_enforcing ]; then
+  SELNX_ENFORCE=`cat ${CONFIG}/selinux_enforcing`
 fi
 
 # zram
-ZRAM_DEV=zram0
-ZRAM_COMP=lz4
-ZRAM_SIZE=$((2048 * 1024 * 1024))
 
 if [ -f ${CONFIG}/zram_comp ]; then
   ZRAM_COMP=`cat ${CONFIG}/zram_comp`
@@ -163,19 +165,10 @@ if [ -f ${CONFIG}/zram_size ]; then
 fi
 
 if [ -f ${CONFIG}/zram_enabled ]; then
-  echo "zram enabled, size: ${ZRAM_SIZE} bytes, compressor: ${ZRAM_COMP}"
-
-  echo ${ZRAM_COMP} > /sys/block/${ZRAM_DEV}/comp_algorithm
-  echo ${ZRAM_SIZE} > /sys/block/${ZRAM_DEV}/disksize
-
-  ${BB} mkswap /dev/block/${ZRAM_DEV}
-  ${BB} swapon /dev/block/${ZRAM_DEV}
+  ZRAM_ENABLED=1
 fi
 
 # zswap
-ZSWAP_DEV=vnswap0
-ZSWAP_COMP=lz4
-ZSWAP_SIZE=$((2048 * 1024 * 1024))
 
 if [ -f ${CONFIG}/zswap_comp ]; then
   ZSWAP_COMP=`cat ${CONFIG}/zswap_comp`
@@ -186,69 +179,163 @@ if [ -f ${CONFIG}/zswap_size ]; then
 fi
 
 if [ -f ${CONFIG}/zswap_enabled ]; then
+  ZSWAP_ENABLED=1
+fi
+
+# blk sched
+
+if [ -f ${CONFIG}/blk_sched ]; then
+  BLK_SCHED=`cat ${CONFIG}/blk_sched`
+fi
+
+# tcp
+
+if [ -f ${CONFIG}/tcp_cong ]; then
+  TCP_CONG=`cat ${CONFIG}/tcp_cong`
+fi
+
+# net sched
+if [ -f ${CONFIG}/net_sched ]; then
+  NET_SCHED=`cat ${CONFIG}/net_sched`
+fi
+
+# tune switches
+
+if [ -f ${CONFIG}/net_tune ]; then
+  NET_TUNE=`cat ${CONFIG}/net_tune`
+fi
+
+if [ -f ${CONFIG}/vm_tune ]; then
+  VM_TUNE=`cat ${CONFIG}/vm_tune`
+fi
+
+if [ -f ${CONFIG}/sched_tune ]; then
+  SCHED_TUNE=`cat ${CONFIG}/sched_tune`
+fi
+
+#
+# Settings
+#
+
+# Exynos hotplug settings
+# TODO: remove this crap in the future
+write 1 /sys/power/cpuhotplug/min_online_cpu
+write 8 /sys/power/cpuhotplug/max_online_cpu
+write 0 /sys/power/cpuhotplug/enabled
+
+# RCU threads: Set affinity to offload RCU workload
+# !! This will impact cache and memory locality
+# RCU_CPUMASK=01
+# for i in `seq 0 7`; do
+#   taskset -p ${RCU_CPUMASK} `pgrep "rcuop\/$i"`
+#   taskset -p ${RCU_CPUMASK} `pgrep "rcuob\/$i"`
+#   taskset -p ${RCU_CPUMASK} `pgrep "rcuos\/$i"`
+# done
+
+# CPUQuiet settings
+# write 4 /sys/devices/system/cpu/cpuquiet/nr_min_cpus
+# write rqbalance /sys/devices/system/cpu/cpuquiet/current_governor
+
+# Touch Boost: cpu_boost
+if [ ${CPUBOOST_ENABLED} -eq 1 ]; then
+  write 0:${CPUBOOST_FREQ_LIT} /sys/module/cpu_boost/parameters/input_boost_freq
+  write 4:${CPUBOOST_FREQ_BIG} /sys/module/cpu_boost/parameters/input_boost_freq
+  write ${CPUBOOST_MS} /sys/module/cpu_boost/parameters/input_boost_ms
+fi
+
+# CPUFREQ Settings
+CPUFREQ_POLICY_LIT=/sys/devices/system/cpu/cpufreq/policy0
+CPUFREQ_POLICY_BIG=/sys/devices/system/cpu/cpufreq/policy4
+
+echo "cpufreq: little: min: ${CPUFREQ_LIT_MIN} max: ${CPUFREQ_LIT_MAX} gov: ${CPUFREQ_GOV_LIT}"
+echo "cpufreq: big:    min: ${CPUFREQ_BIG_MIN} max: ${CPUFREQ_BIG_MAX} gov: ${CPUFREQ_GOV_BIG}"
+
+if [ ${CPUFREQ_LIT_MIN} -ne 0 ]; then
+  write ${CPUFREQ_LIT_MIN} ${CPUFREQ_POLICY_LIT}/scaling_min_freq
+fi
+
+if [ ${CPUFREQ_LIT_MAX} -ne 0 ]; then
+  write ${CPUFREQ_LIT_MAX} ${CPUFREQ_POLICY_LIT}/scaling_max_freq
+fi
+
+if [ ${CPUFREQ_BIG_MIN} -ne 0 ]; then
+  write ${CPUFREQ_BIG_MIN} ${CPUFREQ_POLICY_BIG}/scaling_min_freq
+fi
+
+if [ ${CPUFREQ_BIG_MAX} -ne 0 ]; then
+  write ${CPUFREQ_BIG_MAX} ${CPUFREQ_POLICY_BIG}/scaling_max_freq
+fi
+
+if [ ! -z ${CPUFREQ_GOV_LIT} ]; then
+  write ${CPUFREQ_GOV_LIT} ${CPUFREQ_POLICY_LIT}/scaling_governor
+fi
+
+if [ ! -z ${CPUFREQ_GOV_BIG} ]; then
+  write ${CPUFREQ_GOV_BIG} ${CPUFREQ_POLICY_BIG}/scaling_governor
+fi
+
+# selinux
+if [ ${SELNX_ENFORCE} -eq 0 ]; then
+  echo "selinux permissive"
+
+  write 0 /sys/fs/selinux/enforce
+  chmod 640 /sys/fs/selinux/enforce
+else
+  echo "selinux enforcing"
+
+  write 1 /sys/fs/selinux/enforce
+  chmod 644 /sys/fs/selinux/enforce
+fi
+
+# zram
+if [ ${ZRAM_ENABLED} -eq 1 ]; then
+  echo "zram enabled, size: ${ZRAM_SIZE} bytes, compressor: ${ZRAM_COMP}"
+
+  write ${ZRAM_COMP} /sys/block/${ZRAM_DEV}/comp_algorithm
+  write ${ZRAM_SIZE} /sys/block/${ZRAM_DEV}/disksize
+
+  ${BB} mkswap /dev/block/${ZRAM_DEV}
+  ${BB} swapon /dev/block/${ZRAM_DEV}
+fi
+
+# zswap
+if [ ${ZSWAP_ENABLED} -eq 1 ]; then
   echo "zswap enabled, size ${ZSWAP_SIZE} bytes, compressor ${ZSWAP_COMP}"
 
   # zswap config
-  echo ${ZSWAP_COMP} > /sys/module/zswap/parameters/compressor
-  echo 1 > /sys/module/zswap/parameters/enabled
+  write ${ZSWAP_COMP} /sys/module/zswap/parameters/compressor
+  write 1 /sys/module/zswap/parameters/enabled
 
   # vnswap block device config
-  echo ${ZSWAP_SIZE} > /sys/block/${ZSWAP_DEV}/disksize
+  write ${ZSWAP_SIZE} /sys/block/${ZSWAP_DEV}/disksize
 
   ${BB} mkswap /dev/block/${ZSWAP_DEV}
   ${BB} swapon /dev/block/${ZSWAP_DEV}
 fi
 
 # Block Queue Scheduler
-BLK_SCHED=sio
+if [ ! -z ${BLK_SCHED} ]; then
+  echo "block scheduler: ${BLK_SCHED}"
 
-if [ -f ${CONFIG}/blk_sched ]; then
-  BLK_SCHED=`cat ${CONFIG}/blk_sched`
-fi
-
-echo "block scheduler: ${BLK_SCHED}"
-
-for i in /sys/block/sd?/queue/scheduler; do
-  echo ${BLK_SCHED} > $i
-done
-
-for i in /sys/block/mmcblk?/queue/scheduler; do
-  echo ${BLK_SCHED} > $i
-done
-
-# CFQ Settings
-if [ ${BLK_SCHED} = "cfq" ]; then
-  for i in /sys/block/sd?/queue/iosched; do
-    # Let CFQ decide lowest latency by kernel HZ
-    echo 0 > $i/target_latency
-    echo 0 > $i/target_latency_us
+  for i in /sys/block/{sd?,mmcblk?}/queue/scheduler; do
+    write ${BLK_SCHED} $i
   done
 
-  for i in /sys/block/mmcblk?/queue/iosched; do
-    # Let CFQ decide lowest latency by kernel HZ
-    echo 0 > $i/target_latency
-    echo 0 > $i/target_latency_us
-  done
+  # CFQ Settings
+  if [ ${BLK_SCHED} = "cfq" ]; then
+    for i in /sys/block/{sd?,mmcblk?}/queue/iosched; do
+      # Let CFQ decide lowest latency by kernel HZ
+      write 0 $i/target_latency
+      write 0 $i/target_latency_us
+    done
+  fi
 fi
-
-# Symlink install /sbin/busybox for su shell
-#/sbin/busybox --install -s /sbin
 
 # Network Stack
-# TCP_CONG=cubic
-if [ -f ${CONFIG}/tcp_cong ]; then
-  TCP_CONG=`cat ${CONFIG}/tcp_cong`
-fi
-
-# NET_SCHED=pfifo_fast
-if [ -f ${CONFIG}/net_sched ]; then
-  NET_SCHED=`cat ${CONFIG}/net_sched`
-fi
-
 if [ ! -z ${TCP_CONG} ]; then
   echo "tcp congestion: ${TCP_CONG}"
 
-  echo ${TCP_CONG} > /proc/sys/net/ipv4/tcp_congestion_control
+  write ${TCP_CONG} /proc/sys/net/ipv4/tcp_congestion_control
 
   # config for tcp congestions that require special packet sched
   if [ ${TCP_CONG} = "bbr" ]; then
@@ -259,19 +346,23 @@ fi
 if [ ! -z ${NET_SCHED} ]; then
   echo "net packet sched: ${NET_SCHED}"
 
-  echo ${NET_SCHED} > /proc/sys/net/core/default_qdisc
+  write ${NET_SCHED} /proc/sys/net/core/default_qdisc
 
   # rmnet0 has some other default settings: mq
   ${TC} qdisc replace dev rmnet0 root ${NET_SCHED}
   ${TC} qdisc replace dev wlan0 root ${NET_SCHED}
 fi
 
-echo 3 > /proc/sys/net/ipv4/tcp_fastopen
-echo 30 > /proc/sys/net/ipv4/tcp_fin_timeout
+if [ ${NET_TUNE} -eq 1 ]; then
+  write 3 /proc/sys/net/ipv4/tcp_fastopen
+  write 30 /proc/sys/net/ipv4/tcp_fin_timeout
+fi
 
 # Virtual Memory
-echo 1 > /proc/sys/vm/vfs_cache_pressure
-echo 90 > /proc/sys/vm/dirty_ratio
+if [ ${VM_TUNE} -eq 1 ]; then
+  write 1 /proc/sys/vm/vfs_cache_pressure
+  write 90 /proc/sys/vm/dirty_ratio
+fi
 
 # Process Scheduler
 # tunable                       modified  default
@@ -294,16 +385,18 @@ echo 90 > /proc/sys/vm/dirty_ratio
 # sched_tunable_scaling:        1         0
 # sched_wakeup_granularity_ns:  500000    2000000
 
-# echo 3000000 > /proc/sys/kernel/sched_latency_ns
-# echo 250000 > /proc/sys/kernel/sched_migration_cost_ns
-# echo 300000 > /proc/sys/kernel/sched_min_granularity_ns
-# echo 500000 > /proc/sys/kernel/sched_wakeup_granularity_ns
-# echo 3000 > /proc/sys/kernel/sched_cfs_bandwidth_slice_us
-echo 0 > /proc/sys/kernel/sched_schedstats
-# echo 10000000 > /proc/sys/kernel/sched_shares_window_ns
-# echo 1 > /proc/sys/kernel/sched_sync_hint_enable
-# echo 1000 > /proc/sys/kernel/sched_time_avg_ms
-echo 1 > /proc/sys/kernel/sched_tunable_scaling
+if [ ${SCHED_TUNE} -eq 1 ]; then
+  # write 3000000  /proc/sys/kernel/sched_latency_ns
+  # write 250000   /proc/sys/kernel/sched_migration_cost_ns
+  # write 300000   /proc/sys/kernel/sched_min_granularity_ns
+  # write 500000   /proc/sys/kernel/sched_wakeup_granularity_ns
+  # write 3000     /proc/sys/kernel/sched_cfs_bandwidth_slice_us
+  write 0          /proc/sys/kernel/sched_schedstats
+  # write 10000000 /proc/sys/kernel/sched_shares_window_ns
+  # write 1        /proc/sys/kernel/sched_sync_hint_enable
+  # write 1000     /proc/sys/kernel/sched_time_avg_ms
+  write 1          /proc/sys/kernel/sched_tunable_scaling
+fi
 
 #
 # init.d
