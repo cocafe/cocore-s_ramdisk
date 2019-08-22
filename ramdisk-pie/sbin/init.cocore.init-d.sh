@@ -5,7 +5,12 @@ LOG=/tmp/init-d.log
 
 exec >> ${LOG} 2>&1
 
-INITD_DIR=/system/etc/init.d
+INITD_DIR=$1
+
+if [ -z $1 ]; then
+  echo "init.d: usage: <init.d dir>"
+  exit
+fi
 
 if ! [ -d ${INITD_DIR} ]; then
   mkdir ${INITD_DIR}
@@ -21,9 +26,13 @@ execute_recursive()
   for i in $1/*; do
     if [ -d $i ]; then
       execute_recursive $i
-    elif [ -x $i ]; then
-      echo "init.d: exec" $i
-      /system/bin/sh $i
+    elif [ -e $i ]; then
+      if [ -x $i ]; then
+        echo "init.d: exec" $i
+        ./$i
+      else
+        echo "init.d: no execution permission on $i, skipped"
+      fi
     fi
   done
 }

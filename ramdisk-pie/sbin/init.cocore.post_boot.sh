@@ -403,5 +403,6 @@ fi
 # init.d
 #
 
-/sbin/init.cocore.init-d.sh
+/sbin/init.cocore.init-d.sh /system/etc/init.d
+/sbin/init.cocore.init-d.sh /data/cocore/init.d
 
