@@ -354,7 +354,8 @@ if [ ! -z ${NET_SCHED} ]; then
 fi
 
 if [ ${NET_TUNE} -eq 1 ]; then
-  write 3 /proc/sys/net/ipv4/tcp_fastopen
+  write 1 /proc/sys/net/ipv4/tcp_fastopen
+  write 7 /proc/sys/net/ipv4/tcp_recovery
   write 30 /proc/sys/net/ipv4/tcp_fin_timeout
 fi
 
