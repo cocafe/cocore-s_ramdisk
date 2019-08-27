@@ -361,8 +361,9 @@ fi
 
 # Virtual Memory
 if [ ${VM_TUNE} -eq 1 ]; then
-  write 1 /proc/sys/vm/vfs_cache_pressure
-  write 90 /proc/sys/vm/dirty_ratio
+  write 33  /proc/sys/vm/vfs_cache_pressure
+  write 90  /proc/sys/vm/dirty_ratio
+  write 100 /proc/sys/vm/overcommit_ratio
 fi
 
 # Process Scheduler
