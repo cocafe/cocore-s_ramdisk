@@ -138,7 +138,7 @@ fi
 # CPUQuiet
 
 if [ -f ${CONFIG}/cpuquiet_enabled ]; then
-  CPUQUIET_ENABLED=1
+  CPUQUIET_ENABLED=`cat ${CONFIG}/cpuquiet_enabled`
 fi
 
 if [ -f ${CONFIG}/cpuquiet_min_cpus ]; then
@@ -188,7 +188,7 @@ if [ -f ${CONFIG}/zram_size ]; then
 fi
 
 if [ -f ${CONFIG}/zram_enabled ]; then
-  ZRAM_ENABLED=1
+  ZRAM_ENABLED=`cat ${CONFIG}/zram_enabled`
 fi
 
 # zswap
@@ -202,7 +202,7 @@ if [ -f ${CONFIG}/zswap_size ]; then
 fi
 
 if [ -f ${CONFIG}/zswap_enabled ]; then
-  ZSWAP_ENABLED=1
+  ZSWAP_ENABLED=`cat ${CONFIG}/zswap_enabled`
 fi
 
 # blk sched
