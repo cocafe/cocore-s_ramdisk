@@ -88,6 +88,9 @@ CPUBOOST_FREQ_LIT=1053000
 CPUBOOST_FREQ_BIG=1066000
 CPUBOOST_MS=200
 
+RCU_EXPEDITED=1
+RCU_NORMAL=0
+
 SELNX_ENFORCE=0
 
 ZRAM_DEV=zram0
@@ -169,6 +172,16 @@ fi
 
 if [ -f ${CONFIG}/cpuboost_ms ]; then
   CPUBOOST_MS=`cat ${CONFIG}/cpuboost_ms`
+fi
+
+# RCU
+
+if [ -f ${CONFIG}/rcu_expedited ]; then
+  RCU_EXPEDITED=`cat ${CONFIG}/rcu_expedited`
+fi
+
+if [ -f ${CONFIG}/rcu_normal ]; then
+  RCU_NORMAL=`cat ${CONFIG}/rcu_normal`
 fi
 
 # selinux
@@ -253,6 +266,14 @@ fi
 #   taskset -p ${RCU_CPUMASK} `pgrep "rcuob\/$i"`
 #   taskset -p ${RCU_CPUMASK} `pgrep "rcuos\/$i"`
 # done
+
+#
+# RCU expedited grace period
+#
+# normal will disable expedited knob in kernel
+#
+write ${RCU_EXPEDITED} /sys/kernel/rcu_expedited
+write ${RCU_NORMAL}    /sys/kernel/rcu_normal
 
 # CPUQuiet settings
 if [ ${CPUQUIET_ENABLED} -eq 1 ]; then
