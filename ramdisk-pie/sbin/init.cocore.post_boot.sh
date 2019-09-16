@@ -78,6 +78,11 @@ CPUFREQ_BIT_MAX=0
 CPUFREQ_GOV_LIT=ondemand
 CPUFREQ_GOV_BIG=ondemand
 
+CPUQUIET_ENABLED=0
+CPUQUIET_MIN_CPUS=4
+CPUQUIET_MAX_CPUS=8
+CPUQUIET_GOVERNOR=userspace
+
 CPUBOOST_ENABLED=1
 CPUBOOST_FREQ_LIT=1053000
 CPUBOOST_FREQ_BIG=1066000
@@ -128,6 +133,24 @@ fi
 
 if [ -f ${CONFIG}/cpufreq_gov_big ]; then
   CPUFREQ_GOV_BIG=`cat ${CONFIG}/cpufreq_gov_big`
+fi
+
+# CPUQuiet
+
+if [ -f ${CONFIG}/cpuquiet_enabled ]; then
+  CPUQUIET_ENABLED=1
+fi
+
+if [ -f ${CONFIG}/cpuquiet_min_cpus ]; then
+  CPUQUIET_MIN_CPUS=`cat ${CONFIG}/cpuquiet_min_cpus`
+fi
+
+if [ -f ${CONFIG}/cpuquiet_max_cpus ]; then
+  CPUQUIET_MAX_CPUS=`cat ${CONFIG}/cpuquiet_max_cpus`
+fi
+
+if [ -f ${CONFIG}/cpuquiet_governor ]; then
+  CPUQUIET_GOVERNOR=`cat ${CONFIG}/cpuquiet_governor`
 fi
 
 # CPUBoost
@@ -218,10 +241,9 @@ fi
 #
 
 # Exynos hotplug settings
-# TODO: remove this crap in the future
-write 1 /sys/power/cpuhotplug/min_online_cpu
-write 8 /sys/power/cpuhotplug/max_online_cpu
-write 0 /sys/power/cpuhotplug/enabled
+# write 1 /sys/power/cpuhotplug/min_online_cpu
+# write 8 /sys/power/cpuhotplug/max_online_cpu
+# write 0 /sys/power/cpuhotplug/enabled
 
 # RCU threads: Set affinity to offload RCU workload
 # !! This will impact cache and memory locality
@@ -233,8 +255,13 @@ write 0 /sys/power/cpuhotplug/enabled
 # done
 
 # CPUQuiet settings
-# write 4 /sys/devices/system/cpu/cpuquiet/nr_min_cpus
-# write rqbalance /sys/devices/system/cpu/cpuquiet/current_governor
+if [ ${CPUQUIET_ENABLED} -eq 1 ]; then
+  echo "cpuquiet hotplug driver enabled, governor: ${CPUQUIET_GOVERNOR}"
+
+  write ${CPUQUIET_MIN_CPUS} /sys/devices/system/cpu/cpuquiet/nr_min_cpus
+  write ${CPUQUIET_MAX_CPUS} /sys/devices/system/cpu/cpuquiet/nr_max_cpus
+  write ${CPUQUIET_GOVERNOR} /sys/devices/system/cpu/cpuquiet/current_governor
+fi
 
 # Touch Boost: cpu_boost
 if [ ${CPUBOOST_ENABLED} -eq 1 ]; then
